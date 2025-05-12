@@ -9,6 +9,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 import os
 from pinecone import Pinecone
+from flask import redirect, url_for
+
 index_name = "maindb"
 
 load_dotenv()
@@ -120,10 +122,12 @@ def index():
 
 
 
-@app.route('/clear')
+@app.route('/clear', methods=['GET', 'POST'])
 def clear():
-    session.pop("history", None)
-    return render_template("index.html", history=[], question="")
+    session["history"] = []
+    return redirect(url_for('index'))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

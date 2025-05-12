@@ -22,9 +22,10 @@
   </div>
 </form>
 
-<form method="GET" action="/clear" class="mb-4">
+<form method="POST" action="/clear" class="mb-4">
   <button class="btn btn-danger">🧹 New Session</button>
 </form>
+
 
   {% for entry in history|reverse %}
   <div class="card p-3 mb-3">
