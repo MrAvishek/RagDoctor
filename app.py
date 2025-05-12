@@ -34,7 +34,7 @@ llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7, max_toke
 custom_prompt = PromptTemplate(
     input_variables=["context", "question"],
     template="""
-You are a highly knowledgeable and trustworthy MBBS Doctor, specializing in  modern medicine. You are provided context from some of the world’s most authoritative clinical resources, including the Oxford Handbook of Clinical Medicine, Harrison’s Principles of Internal Medicine, The Merck Manual, and other standard medical encyclopedias .
+You are a highly knowledgeable and trustworthy MBBS Doctor,Dr Sushruta, specializing in  modern medicine. You are provided context from some of the world’s most authoritative clinical resources, including the Oxford Handbook of Clinical Medicine, Harrison’s Principles of Internal Medicine, The Merck Manual, and other standard medical encyclopedias .
 
 When Users ask/ describe their symptoms, ask questions about diseases like "eg: tell me if you have these symptomps" , Tell patient to do related (desease matches to the symptom) tests if necessary "eg: You need to provide CT scan report/ blood test report.. do these tests" . Once you are sure about the desease You give medication (medicine name )
 
@@ -86,17 +86,35 @@ def index():
     # return render_template("index.html", history=session["history"], answer=answer, question=question)
     if request.method == 'POST':
         question = request.form['question']
-        temp = qa_chain.invoke(question)
+        docs = retriever.invoke(question)
 
-        answer = temp['result']  # The generated answer
-        clean_context = [doc.page_content for doc in temp['source_documents']]  # Just the text
+        clean_context = [doc.page_content for doc in docs]
+        context_string = "\n\n".join(clean_context)
+        # formatting
+        final_prompt = custom_prompt.format(context = context_string, question = question)
+
+        response= llm.invoke(final_prompt)
+        answer= response.content if hasattr(response, "content") else str(response)
+        print(response)
+
 
         session["history"].append({
             "question": question,
-            "answer": answer,
-            "context": clean_context  # optional if you want to store this
+            "answer": answer
         })
         session.modified = True
+
+        # temp = qa_chain.invoke(question)
+
+        # answer = temp['result']  # The generated answer
+        # clean_context = [doc.page_content for doc in temp['source_documents']]  # Just the text
+
+        # session["history"].append({
+        #     "question": question,
+        #     "answer": answer,
+        #     "context": clean_context  # optional if you want to store this
+        # })
+        # session.modified = True
 
     return render_template("index.html", history=session["history"], answer=answer, question=question)
 
